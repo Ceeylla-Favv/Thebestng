@@ -182,7 +182,7 @@ const deleteTask = async (req, res) => {
         .json({ error: "Unauthorized to delete this task" });
     }
 
-   task.deleteAt = new Date();
+   task.deletedAt = new Date();
    await task.save();
 
     const mediaTypes = {

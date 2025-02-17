@@ -5,6 +5,8 @@ const walletModel = require("../models/Wallet");
 
 const processRefunds = async () => {
   try {
+    console.log("Running refund cron job at", new Date().toISOString());
+
     const now = new Date();
     const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
@@ -23,6 +25,7 @@ const processRefunds = async () => {
 
       
       await task.deleteOne();
+      console.log(`Deleted task ${task._id}`);
     }
   } catch (error) {
     console.error("Error processing refunds:", error);
@@ -30,6 +33,8 @@ const processRefunds = async () => {
 };
 
 
-cron.schedule("0 * * * *", processRefunds);
+// cron.schedule("0 * * * *", processRefunds);
+// cron.schedule("0 0 */2 * *", processRefunds); // Runs every 2 days at midnight
+cron.schedule("*/15 * * * *", processRefunds); // Runs every 15 minutes
 
 module.exports = processRefunds;

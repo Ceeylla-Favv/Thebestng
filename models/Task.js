@@ -37,7 +37,7 @@ const taskSchema = new Schema(
       enum: ["pending", "paid"],
       default: "pending",
     },
-    deleteAt: {
+    deletedAt: {
       type: Date
     }
   },
