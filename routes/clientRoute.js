@@ -7,6 +7,7 @@ const {
   deleteTask,
   assignTasker,
   approveTask,
+  submitReview,
 } = require("../controllers/clientController");
 
 const router = express.Router();
@@ -34,5 +35,6 @@ router.route("/update-task/:id").patch(
 router.route("/delete-task/:id").delete(isLoggedIn, isClient, deleteTask);
 router.route("/:taskId/assign/:taskerId").patch(isLoggedIn, isClient, assignTasker);
 router.route("/:taskId/approve").patch(isLoggedIn, isClient, approveTask);
+router.route("/review").post(isLoggedIn, submitReview);
 
 module.exports = router;

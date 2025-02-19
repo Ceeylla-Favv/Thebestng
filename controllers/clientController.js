@@ -4,6 +4,7 @@ const taskModel = require("../models/Task");
 const { uploadBufferToCloudinary } = require("../utils/cloudinaryConfig");
 const walletModel = require("../models/Wallet");
 const transactionModel = require("../models/Transaction");
+const reviewModel = require("../models/Review");
 require("dotenv").config();
 
 const createTask = async (req, res) => {
@@ -182,8 +183,8 @@ const deleteTask = async (req, res) => {
         .json({ error: "Unauthorized to delete this task" });
     }
 
-   task.deletedAt = new Date();
-   await task.save();
+    task.deletedAt = new Date();
+    await task.save();
 
     const mediaTypes = {
       image: "images",
@@ -197,7 +198,12 @@ const deleteTask = async (req, res) => {
       }
     }
 
-    return res.status(200).json({ message: "Task marked for deletion, refund will be processed in 48 hours" });
+    return res
+      .status(200)
+      .json({
+        message:
+          "Task marked for deletion, refund will be processed in 48 hours",
+      });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Server error" });
@@ -290,10 +296,56 @@ const approveTask = async (req, res) => {
   }
 };
 
+const submitReview = async (req, res) => {
+  try {
+    const { taskId, message, rating } = req.body;
+    const userId = req.user._id;
+
+    if (!taskId || !message || !rating) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const task = await taskModel.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    if (task.status !== "completed") {
+      return res
+        .status(400)
+        .json({ error: "You can only review completed tasks" });
+    }
+
+    if (
+      ![task.client.toString(), task.designatedTasker.toString()].includes(
+        userId.toString()
+      )
+    ) {
+      return res.status(403).json({ error: "Unauthorized to review this task"})
+    }
+
+
+    const newReview = new reviewModel({
+      taskId,
+      user: userId,
+      message,
+      rating,
+    })
+
+    await newReview.save();
+
+    return res.status(201).json({ message: "Review submitted successfully", review: newReview });
+  } catch (error) {
+    console.error("Error submitting review:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = {
   createTask,
   updateTask,
   deleteTask,
   assignTasker,
-  approveTask
+  approveTask,
+  submitReview
 };
