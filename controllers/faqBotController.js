@@ -34,7 +34,7 @@ const getBestFAQResponse = (message) => {
 
     return highestScore > 0.5
       ? bestMatch.answer
-      : "I'm not sure. Can you rephrase?";
+      : null;
   } catch (error) {
     console.error("Error in FAQ bot:", error);
     return null;

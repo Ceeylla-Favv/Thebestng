@@ -75,14 +75,17 @@ const sendMessage = async (req, res) => {
         }
 
         chat.failedBotResponses = (chat.failedBotResponses || 0) + 1;
-        if (chat.failedBotResponses >= 3) {
-          chat.failedBotResponses = 0; // Reset
-          const availableAgent = await userModel.findOne({ role: "admin" });
-          if (availableAgent) {
-            chat.assignedAgent = availableAgent._id;
-            chat.participants.push(availableAgent._id);
-            await chat.save();
-          }
+        await chat.save();
+
+        if (chat.failedBotResponses >= 2) {
+          chat.failedBotResponses = 0;
+          await chat.save();
+          
+          return res.status(200).json({
+            message:
+              "We couldn't answer your query. Please contact support via WhatsApp.",
+            whatsappLink: process.env.WHATSAPP_SUPPORT_LINK,
+          });
         }
       }
       receiverId = chat.assignedAgent;
