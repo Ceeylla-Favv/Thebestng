@@ -64,6 +64,19 @@ const initializeSocket = (server) => {
       io.to(chatId).emit("agentAssigned", { chatId, agentId });
     });
 
+    socket.on("sendNotification", async (data) => {
+      const { userId, message } = data;
+
+      if (!userId || !message) {
+        console.warn(`Invalid notification data:`, data);
+        return;
+      }
+
+      console.log(`Sending notification to user ${userId}:`, message);
+
+      io.to(userId).emit("notification", { message });
+    });
+
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
     });
