@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const taskModel = require("../models/Task");
+const { sendNotification } = require('../services/notificationService');
 
 
 const getSingleTask = async (req, res) => {
@@ -78,7 +79,7 @@ const getAllTasks = async (req, res) => {
 
 const applyForTask = async (req, res) => {
   try {
-    const task = await taskModel.findById(req.params.taskId);
+    const task = await taskModel.findById(req.params.taskId).populate("client");
 
     if (!task) {
       return res.status(404).json({ error: "Task not found" });
@@ -92,6 +93,8 @@ const applyForTask = async (req, res) => {
 
     task.appliedTaskers.push(req.user._id);
     await task.save();
+
+    await sendNotification(task.client._id, `A tasker has applied for your task: ${task.title}`);
 
     return res
       .status(200)
