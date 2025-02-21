@@ -287,6 +287,12 @@ const approveTask = async (req, res) => {
     task.paymentStatus = "paid";
     await task.save();
 
+
+     await sendNotification(
+       task.designatedTasker._id,
+       "Your task has been approved!"
+     );
+
     return res
       .status(200)
       .json({ message: "Payment released to tasker and platform" });
