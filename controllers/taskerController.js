@@ -107,7 +107,7 @@ const applyForTask = async (req, res) => {
 
 const completeTask = async (req, res) => {
   try {
-    const task = await taskModel.findById(req.params.taskId);
+    const task = await taskModel.findById(req.params.taskId).populate("cliet designatedTasker");
 
     if (!task) {
       return res.status(404).json({ error: "Task not found" });
@@ -121,6 +121,8 @@ const completeTask = async (req, res) => {
 
     task.status = "completed";
     await task.save();
+
+    await sendNotification(task.client._id, `You task "${task.title}" has been completed by ${task.designatedTasker.name}.`);
 
     return res.status(200).json({ message: "Task marked as completed", task });
   } catch (error) {
