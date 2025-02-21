@@ -5,6 +5,7 @@ const { uploadBufferToCloudinary } = require("../utils/cloudinaryConfig");
 const walletModel = require("../models/Wallet");
 const transactionModel = require("../models/Transaction");
 const reviewModel = require("../models/Review");
+const { sendNotification } = require("../services/notificationService");
 require("dotenv").config();
 
 const createTask = async (req, res) => {
@@ -237,6 +238,8 @@ const assignTasker = async (req, res) => {
     task.status = "in-progress";
 
     await task.save();
+
+    await sendNotification(taskerId, `A new task has been assigned to you: ${task.title}`);
     return res
       .status(200)
       .json({ message: "Tasker assigned successfully", task });
