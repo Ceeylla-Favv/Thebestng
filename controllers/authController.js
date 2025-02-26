@@ -4,10 +4,12 @@ const mailsender = require("../services/mailService");
 const userModel = require("../models/User");
 const walletModel = require("../models/Wallet");
 const generateOtp = require("../helpers/otpHelper");
+const generateReferralCode = require("../helpers/referralCode");
+const referralModel = require("../models/Referral");
 require("dotenv").config();
 
 const register = async (req, res) => {
-  const { role, username, email, password } = req.body;
+  const { role, username, email, password, referralCode } = req.body;
 
   try {
     if (!role || !email || !password || !username) {
@@ -23,11 +25,31 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    let newReferralCode;
+    let isUnique = false;
+
+    while (!isUnique) {
+      newReferralCode = generateReferralCode();
+      const existingCode = await userModel.findOne({
+        referralCode: newReferralCode,
+      });
+      if (!existingCode) isUnique = true;
+    }
+
+
+    let referrerUser = null;
+    if (referralCode) {
+      referrerUser = await userModel.findOne({ referralCode });
+    }
+
+
     const newUser = new userModel({
       role,
       username,
       email,
       password: hashedPassword,
+      referralCode: newReferralCode,
+      referredBy: referrerUser ? referrerUser._id : null,
     });
 
     const token = jwt.sign({ userId: newUser._id }, process.env.jwt_secret, {
@@ -43,6 +65,14 @@ const register = async (req, res) => {
 
     await newUser.save();
     await userWallet.save();
+
+    if(referrerUser) {
+      await referralModel.create({
+        user: newUser._id,
+        referrer: referrerUser._id,
+        referralCode: newReferralCode
+      });
+    }
 
     const emailBody = `Dear ${username}, you've successfully signed up`;
     await mailsender(email, "SignUp successful", emailBody);
