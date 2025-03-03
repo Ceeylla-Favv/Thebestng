@@ -158,7 +158,7 @@ const verifyOtp = async (req, res) => {
     const user = await userModel.findOne({ resetToken: { $exists: true } });
 
     if (!user || user.resetExpires < Date.now()) {
-      return res.status(400).json({ error: "Invalid or expied OTP!" });
+      return res.status(400).json({ error: "Invalid or expired OTP!" });
     }
 
     const isMatch = await bcrypt.compare(otp, user.resetToken);
