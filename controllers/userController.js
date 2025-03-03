@@ -18,14 +18,6 @@ const getUserById = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
     try {
-        console.log("User ID from token:", req.user?.id);
-
-        if (!req.user || !req.user.id) {
-          return res
-            .status(401)
-            .json({ message: "Unauthorized: No user ID found" });
-        }
-
         const user = await userModel.findById(req.user.id).select("-password");
 
         if (!user) {
